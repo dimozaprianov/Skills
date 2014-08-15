@@ -115,36 +115,38 @@ namespace Moserware.Skills.TrueSkill
             return new Rating(newMean, newStdDev);
         }
 
-        /// <inheritdoc/>
-        public override double CalculateMatchQuality<TPlayer>(GameInfo gameInfo,
-                                                              IEnumerable<IDictionary<TPlayer, Rating>> teams)
+        public double CalculateMatchQuality(Rating player1Rating, Rating player2Rating, double beta)
         {
-            Guard.ArgumentNotNull(gameInfo, "gameInfo");
-            ValidateTeamCountAndPlayersCountPerTeam(teams);
-
-            Rating player1Rating = teams.First().Values.First();
-            Rating player2Rating = teams.Last().Values.First();
-
             // We just use equation 4.1 found on page 8 of the TrueSkill 2006 paper:
-            double betaSquared = Square(gameInfo.Beta);
+            double betaSquared = Square(beta);
             double player1SigmaSquared = Square(player1Rating.StandardDeviation);
             double player2SigmaSquared = Square(player2Rating.StandardDeviation);
 
             // This is the square root part of the equation:
             double sqrtPart =
                 Math.Sqrt(
-                    (2*betaSquared)
+                    (2 * betaSquared)
                     /
-                    (2*betaSquared + player1SigmaSquared + player2SigmaSquared));
+                    (2 * betaSquared + player1SigmaSquared + player2SigmaSquared));
 
             // This is the exponent part of the equation:
             double expPart =
                 Math.Exp(
-                    (-1*Square(player1Rating.Mean - player2Rating.Mean))
+                    (-1 * Square(player1Rating.Mean - player2Rating.Mean))
                     /
-                    (2*(2*betaSquared + player1SigmaSquared + player2SigmaSquared)));
+                    (2 * (2 * betaSquared + player1SigmaSquared + player2SigmaSquared)));
 
-            return sqrtPart*expPart;
+            return sqrtPart * expPart;
+        }
+
+        /// <inheritdoc/>
+        public override double CalculateMatchQuality<TPlayer>(GameInfo gameInfo,
+                                                              IEnumerable<IDictionary<TPlayer, Rating>> teams)
+        {
+            Guard.ArgumentNotNull(gameInfo, "gameInfo");
+            ValidateTeamCountAndPlayersCountPerTeam(teams);
+            
+            return CalculateMatchQuality(teams.First().Values.First(), teams.Last().Values.First(), gameInfo.Beta);
         }
     }
 }
