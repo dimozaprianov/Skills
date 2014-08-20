@@ -56,7 +56,7 @@ namespace Moserware.Skills.TrueSkill
             return results;
         }
 
-        private static Rating CalculateNewRating(GameInfo gameInfo, Rating selfRating, Rating opponentRating,
+        public static Rating CalculateNewRating(GameInfo gameInfo, Rating selfRating, Rating opponentRating,
                                                  PairwiseComparison comparison)
         {
             double drawMargin = DrawMargin.GetDrawMarginFromDrawProbability(gameInfo.DrawProbability, gameInfo.Beta);
@@ -110,7 +110,7 @@ namespace Moserware.Skills.TrueSkill
             double stdDevMultiplier = varianceWithDynamics/Square(c);
 
             double newMean = selfRating.Mean + (rankMultiplier*meanMultiplier*v);
-            double newStdDev = Math.Sqrt(varianceWithDynamics*(1 - w*stdDevMultiplier));
+            double newStdDev = Math.Sqrt(Math.Max(0, varianceWithDynamics*(1 - w*stdDevMultiplier)));
 
             return new Rating(newMean, newStdDev);
         }
